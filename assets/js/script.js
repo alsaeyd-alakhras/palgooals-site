@@ -84,8 +84,6 @@ $(document).ready(function () {
         const slider = $(selector);
         if (slider.length === 0) return;
 
-        // Find indicators container within the same section
-        // Uses the specific classes existing in the DOM structure
         const indicatorsContainer = slider.closest('section').find('.flex.justify-center.gap-2');
 
         let isScrolling;
@@ -93,13 +91,16 @@ $(document).ready(function () {
         let startX;
         let scrollLeft;
         let hasDragged = false;
+        let lastX;
+        let lastTime;
+        let velocity = 0;
 
-        // Initialize slider dynamically
+        slider.css('scroll-behavior', 'smooth');
+
         function initializeSlider() {
             const cards = slider.find('.snap-center');
             const cardCount = cards.length;
 
-            // Generate indicators dynamically based on card count
             indicatorsContainer.empty();
             for (let i = 0; i < cardCount; i++) {
                 const indicator = $('<div></div>')
@@ -108,38 +109,26 @@ $(document).ready(function () {
                     .attr('data-index', i);
                 indicatorsContainer.append(indicator);
             }
-
-            // Re-bind click events to new indicators
             bindIndicatorClicks();
         }
 
-        // Function to get width of ONE card including gap
         function getCardWidthWithGap() {
             const cards = slider.find('.snap-center');
             const cardCount = cards.length;
 
-            if (cardCount === 0) {
-                return 0;
-            }
+            if (cardCount === 0) return 0;
+            if (cardCount === 1) return cards.first().outerWidth(true);
 
-            if (cardCount === 1) {
-                return cards.first().outerWidth(true);
-            }
-
-            // Calculate distance between first and second card
             const sliderLeft = slider.offset().left;
             const scrollLeftVal = slider.scrollLeft();
-
             const firstCard = cards.eq(0);
             const secondCard = cards.eq(1);
-
             const firstCardPos = firstCard.offset().left - sliderLeft + scrollLeftVal;
             const secondCardPos = secondCard.offset().left - sliderLeft + scrollLeftVal;
 
             return secondCardPos - firstCardPos;
         }
 
-        // Function to update active indicator based on scroll position
         function updateActiveIndicator() {
             const currentScrollLeft = slider.scrollLeft();
             const indicators = indicatorsContainer.find('.indicator-dot');
@@ -147,7 +136,6 @@ $(document).ready(function () {
 
             if (cards.length === 0) return;
 
-            // Check if we're at the end of scroll
             const maxScroll = slider[0].scrollWidth - slider.outerWidth();
             const isAtEnd = currentScrollLeft >= maxScroll - 10;
 
@@ -185,20 +173,17 @@ $(document).ready(function () {
             });
         }
 
-        // Bind click events to indicators
         function bindIndicatorClicks() {
             const indicators = indicatorsContainer.find('.indicator-dot');
 
             indicators.off('click').on('click', function () {
                 const index = parseInt($(this).attr('data-index'));
                 const cards = slider.find('.snap-center');
-
                 if (index >= cards.length) return;
 
                 const targetCard = cards.eq(index);
                 const sliderLeft = slider.offset().left;
                 const currentScrollLeft = slider.scrollLeft();
-
                 let cardLeft = targetCard.offset().left - sliderLeft + currentScrollLeft;
                 const maxScroll = slider[0].scrollWidth - slider.outerWidth();
 
@@ -206,15 +191,12 @@ $(document).ready(function () {
                     cardLeft = Math.min(cardLeft, maxScroll);
                 }
 
-                slider.animate({
-                    scrollLeft: cardLeft
-                }, 500, 'swing', function () {
-                    updateActiveIndicator();
-                });
+                slider.css('scroll-behavior', 'smooth');
+                slider[0].scrollTo({ left: cardLeft, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
             });
         }
 
-        // Listen to scroll events
         slider.on('scroll', function () {
             clearTimeout(isScrolling);
             isScrolling = setTimeout(function () {
@@ -222,35 +204,52 @@ $(document).ready(function () {
             }, 100);
         });
 
-        // Mouse Drag Functionality
         slider.on('mousedown', function (e) {
             isDown = true;
             hasDragged = false;
             slider.addClass('cursor-grabbing');
+            slider.css('scroll-behavior', 'auto');
+            slider.css('scroll-snap-type', 'none');
+            
             startX = e.pageX - slider.offset().left;
             scrollLeft = slider.scrollLeft();
+            lastX = e.pageX;
+            lastTime = Date.now();
+            velocity = 0;
         });
 
         slider.on('mouseleave', function () {
+            if (!isDown) return;
             isDown = false;
             slider.removeClass('cursor-grabbing');
+            slider.css('scroll-snap-type', '');
+            slider.css('scroll-behavior', 'smooth');
         });
 
         slider.on('mouseup', function () {
+            if (!isDown) return;
             isDown = false;
             slider.removeClass('cursor-grabbing');
+            slider.css('scroll-snap-type', '');
+            slider.css('scroll-behavior', 'smooth');
 
-            if (hasDragged) {
+            if (hasDragged && Math.abs(velocity) > 0.5) {
+                const cardWidthWithGap = getCardWidthWithGap();
+                const currentScroll = slider.scrollLeft();
+                const momentumScroll = currentScroll - (velocity * 200);
+                const nearestIndex = Math.round(momentumScroll / cardWidthWithGap);
+                const targetScroll = Math.max(0, Math.min(nearestIndex * cardWidthWithGap, slider[0].scrollWidth - slider.outerWidth()));
+
+                slider[0].scrollTo({ left: targetScroll, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
+            } else if (hasDragged) {
                 const cardWidthWithGap = getCardWidthWithGap();
                 const currentScroll = slider.scrollLeft();
                 const nearestIndex = Math.round(currentScroll / cardWidthWithGap);
                 const targetScroll = nearestIndex * cardWidthWithGap;
 
-                slider.animate({
-                    scrollLeft: targetScroll
-                }, 300, 'swing', function () {
-                    updateActiveIndicator();
-                });
+                slider[0].scrollTo({ left: targetScroll, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
             }
         });
 
@@ -259,6 +258,17 @@ $(document).ready(function () {
             e.preventDefault();
             hasDragged = true;
 
+            const now = Date.now();
+            const dt = now - lastTime;
+            const dx = e.pageX - lastX;
+            
+            if (dt > 0) {
+                velocity = dx / dt;
+            }
+            
+            lastX = e.pageX;
+            lastTime = now;
+
             const x = e.pageX - slider.offset().left;
             const walk = (x - startX) * 1.5;
             slider.scrollLeft(scrollLeft - walk);
@@ -266,11 +276,9 @@ $(document).ready(function () {
 
         slider.addClass('cursor-grab');
 
-        // Initial setup
         initializeSlider();
         updateActiveIndicator();
 
-        // Handle window resize
         $(window).on('resize', function () {
             updateActiveIndicator();
         });
@@ -283,7 +291,6 @@ $(document).ready(function () {
         const slider = $(selector);
         if (slider.length === 0) return;
 
-        // Use provided ID or fallback
         const indicatorsContainer = indicatorSelector ? $(indicatorSelector) : slider.closest('section').find('.flex.justify-center.gap-2');
 
         let isScrolling;
@@ -291,6 +298,11 @@ $(document).ready(function () {
         let startX;
         let scrollLeft;
         let hasDragged = false;
+        let lastX;
+        let lastTime;
+        let velocity = 0;
+
+        slider.css('scroll-behavior', 'smooth');
 
         function initializeSlider() {
             const cards = slider.children();
@@ -310,7 +322,7 @@ $(document).ready(function () {
         function updateActiveIndicator() {
             const currentScrollLeft = slider.scrollLeft();
             const indicators = indicatorsContainer.find('.indicator-dot');
-            const cards = slider.children(); // Robust selector
+            const cards = slider.children();
 
             if (cards.length === 0) return;
 
@@ -357,13 +369,12 @@ $(document).ready(function () {
 
             indicators.off('click').on('click', function () {
                 const index = parseInt($(this).attr('data-index'));
-                const cards = slider.children(); // Robust selector
+                const cards = slider.children();
                 if (index >= cards.length) return;
 
                 const targetCard = cards.eq(index);
                 const sliderLeft = slider.offset().left;
                 const currentScrollLeft = slider.scrollLeft();
-
                 let cardLeft = targetCard.offset().left - sliderLeft + currentScrollLeft;
                 const maxScroll = slider[0].scrollWidth - slider.outerWidth();
 
@@ -371,9 +382,9 @@ $(document).ready(function () {
                     cardLeft = Math.min(cardLeft, maxScroll);
                 }
 
-                slider.animate({ scrollLeft: cardLeft }, 500, 'swing', function () {
-                    updateActiveIndicator();
-                });
+                slider.css('scroll-behavior', 'smooth');
+                slider[0].scrollTo({ left: cardLeft, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
             });
         }
 
@@ -384,17 +395,18 @@ $(document).ready(function () {
             }, 100);
         });
 
-        // OPTIMIZED MOUSE DRAG
         slider.on('mousedown', function (e) {
             isDown = true;
             hasDragged = false;
             slider.addClass('cursor-grabbing');
-
-            // Disable scroll snap while dragging to prevent fighting
+            slider.css('scroll-behavior', 'auto');
             slider.css('scroll-snap-type', 'none');
 
-            startX = e.pageX; // Absolute coordinates
+            startX = e.pageX;
             scrollLeft = slider.scrollLeft();
+            lastX = e.pageX;
+            lastTime = Date.now();
+            velocity = 0;
         });
 
         slider.on('mouseleave', function () {
@@ -402,21 +414,44 @@ $(document).ready(function () {
             isDown = false;
             slider.removeClass('cursor-grabbing');
             slider.css('scroll-snap-type', '');
+            slider.css('scroll-behavior', 'smooth');
         });
 
         slider.on('mouseup', function () {
             if (!isDown) return;
             isDown = false;
             slider.removeClass('cursor-grabbing');
-
-            // Re-enable snap immediately
             slider.css('scroll-snap-type', '');
+            slider.css('scroll-behavior', 'smooth');
+
+            if (hasDragged && Math.abs(velocity) > 0.5) {
+                const currentScroll = slider.scrollLeft();
+                const momentumDistance = velocity * 300;
+                const targetScroll = Math.max(0, Math.min(
+                    currentScroll - momentumDistance,
+                    slider[0].scrollWidth - slider.outerWidth()
+                ));
+
+                slider[0].scrollTo({ left: targetScroll, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
+            }
         });
 
         slider.on('mousemove', function (e) {
             if (!isDown) return;
             e.preventDefault();
             hasDragged = true;
+
+            const now = Date.now();
+            const dt = now - lastTime;
+            const dx = e.pageX - lastX;
+            
+            if (dt > 0) {
+                velocity = dx / dt;
+            }
+            
+            lastX = e.pageX;
+            lastTime = now;
 
             const x = e.pageX;
             const walk = (x - startX) * 1.5;
@@ -449,6 +484,12 @@ $(document).ready(function () {
         let isDown = false;
         let startX;
         let scrollLeft;
+        let hasDragged = false;
+        let lastX;
+        let lastTime;
+        let velocity = 0;
+
+        slider.css('scroll-behavior', 'smooth');
 
         function initializeSlider() {
             const cards = slider.children();
@@ -461,6 +502,7 @@ $(document).ready(function () {
                 indicatorsContainer.append(indicator);
             });
             bindIndicatorClicks();
+            slider.scrollLeft(0);
         }
 
         function updateActiveIndicator() {
@@ -468,16 +510,28 @@ $(document).ready(function () {
             const cards = slider.children();
             if (cards.length === 0) return;
 
-            const sliderWidth = slider.outerWidth();
-            const sliderCenter = slider.offset().left + (sliderWidth / 2);
+            const currentScrollLeft = slider.scrollLeft();
+            const maxScroll = slider[0].scrollWidth - slider.outerWidth();
+            const isAtEnd = currentScrollLeft >= maxScroll - 10;
+
+            if (isAtEnd) {
+                indicators.each(function (index) {
+                    if (index === cards.length - 1) {
+                        $(this).removeClass('w-12 bg-gray-300').addClass('w-32 bg-purple-brand');
+                    } else {
+                        $(this).removeClass('w-32 bg-purple-brand').addClass('w-12 bg-gray-300');
+                    }
+                });
+                return;
+            }
 
             let closestIndex = 0;
             let minDistance = Infinity;
 
             cards.each(function (index) {
                 const card = $(this);
-                const cardCenter = card.offset().left + (card.outerWidth() / 2);
-                const distance = Math.abs(cardCenter - sliderCenter);
+                const cardOffsetLeft = card[0].offsetLeft;
+                const distance = Math.abs(cardOffsetLeft - currentScrollLeft);
 
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -497,19 +551,18 @@ $(document).ready(function () {
         function bindIndicatorClicks() {
             indicatorsContainer.find('.indicator-dot').on('click', function () {
                 const index = parseInt($(this).attr('data-index'));
-                const targetCard = slider.children().eq(index);
-                const sliderWidth = slider.outerWidth();
-                const cardWidth = targetCard.outerWidth();
+                const cards = slider.children();
+                const targetCard = cards.eq(index);
+                let targetScroll = targetCard[0].offsetLeft;
 
-                // Calculate scroll position to center the card
-                // offsetLeft is relative to the scroll container
-                const targetScroll = targetCard[0].offsetLeft - (sliderWidth / 2) + (cardWidth / 2);
+                const maxScroll = slider[0].scrollWidth - slider.outerWidth();
+                if (index === cards.length - 1) {
+                    targetScroll = maxScroll;
+                }
 
-                slider.animate({
-                    scrollLeft: targetScroll
-                }, 500, 'swing', function () {
-                    updateActiveIndicator();
-                });
+                slider.css('scroll-behavior', 'smooth');
+                slider[0].scrollTo({ left: targetScroll, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
             });
         }
 
@@ -520,13 +573,18 @@ $(document).ready(function () {
             }, 100);
         });
 
-        // Mouse Drag
         slider.on('mousedown', function (e) {
             isDown = true;
+            hasDragged = false;
             slider.addClass('cursor-grabbing');
+            slider.css('scroll-behavior', 'auto');
             slider.css('scroll-snap-type', 'none');
+            
             startX = e.pageX;
             scrollLeft = slider.scrollLeft();
+            lastX = e.pageX;
+            lastTime = Date.now();
+            velocity = 0;
         });
 
         $(window).on('mouseup', function () {
@@ -534,26 +592,56 @@ $(document).ready(function () {
             isDown = false;
             slider.removeClass('cursor-grabbing');
             slider.css('scroll-snap-type', '');
+            slider.css('scroll-behavior', 'smooth');
+
+            if (hasDragged && Math.abs(velocity) > 0.5) {
+                const currentScroll = slider.scrollLeft();
+                const momentumDistance = velocity * 300;
+                const targetScroll = Math.max(0, Math.min(
+                    currentScroll - momentumDistance,
+                    slider[0].scrollWidth - slider.outerWidth()
+                ));
+
+                slider[0].scrollTo({ left: targetScroll, behavior: 'smooth' });
+                setTimeout(updateActiveIndicator, 600);
+            }
         });
 
         slider.on('mousemove', function (e) {
             if (!isDown) return;
             e.preventDefault();
+            hasDragged = true;
+
+            const now = Date.now();
+            const dt = now - lastTime;
+            const dx = e.pageX - lastX;
+            
+            if (dt > 0) {
+                velocity = dx / dt;
+            }
+            
+            lastX = e.pageX;
+            lastTime = now;
+
             const x = e.pageX;
             const walk = (x - startX) * 1.5;
             slider.scrollLeft(scrollLeft - walk);
         });
 
+        slider.addClass('cursor-grab');
+
         initializeSlider();
         updateActiveIndicator();
-
+        
         $(window).on('resize', function () {
             updateActiveIndicator();
         });
     }
 
     // Initialize Reviews Slider
-    initSliderReviews('#reviews-slider', '#reviews-indicators');
+    setTimeout(function() {
+        initSliderReviews('#reviews-slider', '#reviews-indicators');
+    }, 100);
 
 
     // ========================================
