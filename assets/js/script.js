@@ -728,17 +728,18 @@ $(document).ready(function () {
         }
     }
 
-    // Function to update active tab styling
     function updateActiveTab(clickedTab) {
-        // Remove active state from all tabs
-        categoryTabs.removeClass('text-purple-brand');
-        categoryTabs.addClass('text-gray-400');
+        categoryTabs.each(function() {
+            const tab = $(this);
+            if (tab.is(clickedTab)) {
+                tab.removeClass('text-gray-400 border-transparent')
+                   .addClass('text-purple-brand border-purple-brand');
+            } else {
+                tab.removeClass('text-purple-brand border-purple-brand')
+                   .addClass('text-gray-400 border-transparent');
+            }
+        });
 
-        // Add active state to clicked tab
-        clickedTab.removeClass('text-gray-400');
-        clickedTab.addClass('text-purple-brand');
-
-        // Move the indicator to the active tab
         moveIndicator(clickedTab);
     }
 
@@ -757,16 +758,16 @@ $(document).ready(function () {
         filterPricingCards(selectedCategory);
     });
 
-    // Add hover effect - preview indicator on hover (only for non-active tabs)
+    let hoverTimeout;
+    
     categoryTabs.on('mouseenter', function () {
         const hoveredTab = $(this);
+        clearTimeout(hoverTimeout);
         
-        // Only show preview if it's not the active tab
         if (!hoveredTab.hasClass('text-purple-brand')) {
             const tabOffset = hoveredTab.position().left;
             const tabWidth = hoveredTab.outerWidth();
             
-            // Temporarily move indicator to hovered tab with faster animation
             tabIndicator.css({
                 'left': tabOffset + 'px',
                 'width': tabWidth + 'px',
@@ -775,13 +776,15 @@ $(document).ready(function () {
         }
     });
 
-    // Return indicator to active tab when mouse leaves
     categoryTabs.on('mouseleave', function () {
-        const activeTab = categoryTabs.filter('.text-purple-brand');
-        
-        // Return indicator to active tab
-        tabIndicator.css('opacity', '1');
-        moveIndicator(activeTab);
+        clearTimeout(hoverTimeout);
+        hoverTimeout = setTimeout(function() {
+            const activeTab = categoryTabs.filter('.text-purple-brand');
+            if (activeTab.length > 0) {
+                tabIndicator.css('opacity', '1');
+                moveIndicator(activeTab);
+            }
+        }, 150);
     });
 
     // Initialize with 'shared' category visible on page load
