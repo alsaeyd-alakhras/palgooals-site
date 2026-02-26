@@ -1127,7 +1127,7 @@
     <!-- Mobile App Section -->
     <section id="mobile-app" class="py-16 lg:py-24 px-4 sm:px-6 lg:px-12 bg-gray-50 overflow-hidden">
         <div class="container mx-auto">
-            <div class="flex flex-col lg:flex-row items-center gap-6 lg:gap-14">
+            <div class="flex flex-col-reverse lg:flex-row items-center gap-6 lg:gap-14">
 
                 <!-- Images Block (Start Side) -->
                 <div class="w-full lg:w-1/2" data-aos="fade-right" data-aos-duration="1000">
@@ -1477,7 +1477,7 @@
     <section id="digital-marketing" class="py-16 lg:py-24 px-4 sm:px-6 lg:px-12 bg-gray-50 overflow-hidden">
         <div class="container mx-auto">
             <!-- <div class="flex flex-col lg:flex-row items-center lg:items-center gap-12 lg:gap-24"> -->
-            <div class="flex flex-col lg:flex-row lg:items-stretch gap-12 lg:gap-24">
+            <div class="flex flex-col-reverse lg:flex-row lg:items-stretch gap-12 lg:gap-24">
 
 
                 <!-- Images Block (Start Side) -->
@@ -2076,9 +2076,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-[#F3F4F6] pt-16 pb-8 px-4 sm:px-6 lg:px-12 text-start">
+    <footer class="bg-[#F3F4F6] pt-16 pb-4 md:pb-8 px-4 sm:px-6 lg:px-12 text-start">
         <div class="container mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-24 mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-24 mb-4 md:mb-8">
 
                 <!-- Column 1: Company Info -->
                 <div data-aos="fade-up" data-aos-duration="800">
@@ -2106,7 +2106,7 @@
                             </svg>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-sm md:text-base leading-relaxed max-w-sm">
+                    <p class="text-gray-dark text-base leading-relaxed max-w-sm">
                         Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt
                         ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo
                         dolores et ea rebum.
@@ -2144,7 +2144,7 @@
                 </div>
 
                 <!-- Column 3: Payment & Help -->
-                <div class="flex flex-row md:flex-col justify-between md:justify-start" data-aos="fade-up"
+                <div class="grid grid-cols-2 md:grid-cols-1 gap-x-4 gap-y-3" data-aos="fade-up"
                     data-aos-duration="800" data-aos-delay="400">
                     <div>
                         <h3 class="font-bold text-2xl md:text-3xl text-black mb-2 uppercase tracking-wide">PAYMENT</h3>
@@ -2166,21 +2166,54 @@
                         </div>
                     </div>
                     <div>
-                        <p class="text-black text-lg mb-1">NEED HELP?</p>
-                        <p class="font-bold text-xl text-black">
+                        <p class="text-black text-lg font-bold mb-1">NEED HELP?</p>
+                        <p class="font-medium md:font-bold text-xl text-black">
                             (+800) 1234 5678 90
                         </p>
+                    </div>
+                </div>
+
+                <div class=" items-center justify-center gap-4 ltr:flex-row rtl:flex-row-reverse flex md:hidden">
+                    <span class="text-black text-base uppercase">FOLLOW US:</span>
+                    <div class="flex items-center gap-5">
+                        <a href="#"
+                            class="text-gray-500 hover:text-purple-brand hover:-translate-y-1 transition-all duration-300">
+                            <img src="./assets/imgs/icons/icon-awesome-facebook-f.svg"
+                                class="w-5 h-5 opacity-60 hover:opacity-100" alt="Facebook">
+                        </a>
+                        <a href="#"
+                            class="text-gray-500 hover:text-purple-brand hover:-translate-y-1 transition-all duration-300">
+                            <img src="./assets/imgs/icons/icon-awesome-snapchat-ghost.svg"
+                                class="w-5 h-5 opacity-60 hover:opacity-100" alt="Snapchat">
+                        </a>
+                        <a href="#"
+                            class="text-gray-500 hover:text-purple-brand hover:-translate-y-1 transition-all duration-300">
+                            <img src="./assets/imgs/icons/icon-awesome-linkedin-in.svg"
+                                class="w-5 h-5 opacity-60 hover:opacity-100" alt="Linkedin">
+                        </a>
+                        <a href="#"
+                            class="text-gray-500 hover:text-purple-brand hover:-translate-y-1 transition-all duration-300">
+                            <svg class="w-5 h-5 opacity-60 hover:opacity-100 fill-current" viewBox="0 0 24 24">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="text-gray-500 hover:text-purple-brand hover:-translate-y-1 transition-all duration-300">
+                            <img src="./assets/imgs/icons/icon-awesome-instagram.svg"
+                                class="w-5 h-5 opacity-60 hover:opacity-100" alt="Instagram">
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Bottom Row -->
-            <div class="border-t border-gray-300 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="border-t border-gray-300 pt-4 md:pt-8 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
                 <p class="text-gray-dark text-base ltr:text-left rtl:text-right">
                     All rights reserved to PalGoals company © 2025
                 </p>
 
-                <div class="flex items-center gap-4 ltr:flex-row rtl:flex-row-reverse">
+                <div class=" items-center gap-4 ltr:flex-row rtl:flex-row-reverse hidden md:flex">
                     <span class="text-[#8E8E8E] text-base uppercase">FOLLOW US:</span>
                     <div class="flex items-center gap-5">
                         <a href="#"
