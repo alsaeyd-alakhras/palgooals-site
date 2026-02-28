@@ -732,10 +732,10 @@ $(document).ready(function () {
         categoryTabs.each(function() {
             const tab = $(this);
             if (tab.is(clickedTab)) {
-                tab.removeClass('text-gray-400 border-transparent')
-                   .addClass('text-purple-brand border-purple-brand');
+                tab.removeClass('text-gray-400 border-transparent font-bold')
+                   .addClass('text-purple-brand border-purple-brand font-bold');
             } else {
-                tab.removeClass('text-purple-brand border-purple-brand')
+                tab.removeClass('text-purple-brand border-purple-brand font-bold')
                    .addClass('text-gray-400 border-transparent');
             }
         });
